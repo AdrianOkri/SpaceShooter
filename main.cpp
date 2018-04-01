@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <windows.h> // Poder mandar la posición al imprimir un valor
 #include <conio.h>
+#include <list> // Poder manejar listas (Memoria dinámica)
+
+using namespace std;
 // *******************  Constantes  *******************
 #define ARRIBA 72
 #define IZQUIERDA 75
@@ -23,6 +26,7 @@ class NAVE {
 		void Explotar();
 		int X() { return x; } // Nos regresará el valor de x
 		int Y() { return y; } // Nos regresará el valor de y
+		int V() { return vidas; }
 };
 // Clase que creará el asteroide, su posición inicial, su forma y el choque contra la nave
 class ASTEROIDE {
@@ -32,7 +36,20 @@ class ASTEROIDE {
 		ASTEROIDE(int _x, int _y): x(_x), y(_y) {}	
 		void Crear();
 		void Mover();
-		void Colisionar(class NAVE &N);
+		void Colisionar(NAVE &N);
+		int X() { return x; } // Nos regresará el valor de x
+		int Y() { return y; } // Nos regresará el valor de y
+};
+// Classe que nos creará la bala que la nave va a disparar, destruirá los asteroides y sumará puntos
+class PROYECTIL {
+	int x, y;
+	
+	public:
+		PROYECTIL(int _x, int _y): x(_x), y(_y) {}
+		void Crear();
+		int X() { return x; }
+		int Y() { return y; }
+		bool Eliminar();
 };
 // *******************  Funciones Normales  *******************
 // Función que modificará la consola, para que puedas manipular las posiciones en ella
@@ -135,7 +152,7 @@ void NAVE::Explotar() {
 }
 // Función para imprimir el carácter del asteroide
 void ASTEROIDE::Crear() {
-	Gotoxy(x,y); printf("%c", 187);
+	Gotoxy(x,y); printf("%c", 228);
 }
 // Función que hará que el asteroide se mueva en el eje de las Y, y aparezca en una posición al azar
 void ASTEROIDE::Mover() { // en el eje de las X
@@ -148,32 +165,95 @@ void ASTEROIDE::Mover() { // en el eje de las X
 	Crear(); // Llamar al método de la propia clase ASTEROIDE
 }
 // Función que nos ayudará a detectar la posición del asteroide y de la nave, si están en la misma posición
-void ASTEROIDE::Colisionar(class NAVE &N) { // Se tomorá como una colisión
-	if (x >= N.X() && x < N.X() + 5 && y >= N.Y() && y <= N.Y() + 2) { // Si la posición son iguales, entonces:
+void ASTEROIDE::Colisionar(NAVE &N) { // Se tomorá como una colisión
+	if (x >= N.X() && x < N.X() + 6 && y >= N.Y() && y <= N.Y() + 2) { // Si la posición son iguales, entonces:
 		N.QuitarSalud(); // Reducir Salud
+		N.Borrar(); // Borrar todos los carácters
 		N.Pintar(); // Pintar nuevamente la nave
 		N.PintarSalud(); // Colocar la barra de salud creducida
 		x = (rand() % 71) + 4; // Dar un número al azar al asteroide, que será la posición inicial
 		y = 4;
 	}
 }
+// Función de la clase PROYECTIL, que nos creará la bala y la animación de movimiento
+void PROYECTIL::Crear() {
+	Gotoxy(x,y); printf(" "); // Borrar la posición anterior de la bala, para no dejar un rasto de carácters
+	y--;
+	Gotoxy(x,y); printf("%c", 58);
+}
+// Función que nos ayudará a eliminar un proyectil, una vez llegado al límite del mapa o al chocar con un asteroide
+bool PROYECTIL::Eliminar() {
+	if(y == 4) return true;
+	return false;
+}
 // *******************  Inicio  *******************
 int main(int argc, char** argv) {
 	OcultarCursor();
 	LimitarConsola();
 	
-	NAVE N(10, 10, 3, 3); // Crear un objeto NAVE con las coordenadas 7,7 y con 3 vidas
+	NAVE N(25, 20, 3, 3); // Crear un objeto NAVE con las coordenadas 7,7 y con 3 vidas
 	N.Pintar(); // Llamar a sus métodos del objeto NAVE
 	N.PintarSalud();
 	
-	ASTEROIDE AST(10,4), AST2(4,8), AST3(14,10), AST4(15, 4); // Crear el objeto Asteroide
+	Gotoxy(3, 2); printf("Space Shooter in C++");
+	
+	list <ASTEROIDE*> A;
+	list <ASTEROIDE*>::iterator itA; // Nos ayudará a recorrer la lista anterior
+	
+	for (int i = 0; i < 5; i++) { // Ciclo para crear los ASTEROIDES
+		A.push_back(new ASTEROIDE(rand()%74 + 3, rand()%5 + 4));
+	}
+	
+	list <PROYECTIL*> P; // Crear una lista de punteros de la clase PROYECTIL
+	list <PROYECTIL*>::iterator it; // Nos ayudará a recorrer la lista anterior
 	
 	bool gameOver = false; // Nos dirá cuando el juego haya terminado, deteniendo el ciclo while
+	int puntaje = 0; // Cada que haya una colisión, se sumará al puntaje
 	while(!gameOver) {
-		AST.Mover(); AST.Colisionar(N);
-		AST2.Mover(); AST2.Colisionar(N);
-		AST3.Mover(); AST3.Colisionar(N);
-		AST4.Mover(); AST4.Colisionar(N);
+		Gotoxy(30,2); printf("Puntaje: %d", puntaje);
+		if(kbhit()) { // Si se presiona una tecla
+			char t = getch(); // Guardar la letra presionada en la variable tecla
+			// N.X() && N.Y() Son la posición actual de la nave
+			if(t == 'a') {
+				P.push_back(new PROYECTIL(N.X() + 2, N.Y() - 1)); // Crear o agregar un nuevo elemento al final de la lista
+			} 
+		}
+		// Para una vez que hayamos creado el Proyectil, mover a todos
+		for(it = P.begin(); it != P.end(); it++) { // |begin = inicio de la lista| |end = el útimo valor de la lista|
+			(*it)->Crear(); // El puntero de la clase PROYECTIL, puede acceder al método Crear para mandar la ejecución
+			if ((*it)->Eliminar()) { // Si la función retorna true, eliminar la bala
+				Gotoxy((*it)->X(),(*it)->Y()); printf(" "); // Obtener la posición del proyectil y borrarlo
+				delete(*it); // Eliminar el elemento de la lista
+				it = P.erase(it); // Quitar un elemento, pero decir al iterator, que continue con la siguiente posición
+			}
+		}
+		// Para una vez que hayamos creado el Asteroide, mover a todos
+		for(itA = A.begin(); itA != A.end(); itA++) {
+			(*itA)->Mover();
+			(*itA)->Colisionar(N);
+		}
+		// Ciclo para recorrer ambas listas del Proyectil y del Asteroide, para calcular su posición y al momento de cumplir
+		for(itA = A.begin(); itA != A.end(); itA++) { // la condición, ejecutar como si hubieran colisonado
+			for(it = P.begin(); it != P.end(); it++) {
+				if((*itA)->X() == (*it)->X() && ((*itA)->Y() + 1 == (*it)->Y() || (*itA)->Y() == (*it)->Y())) {
+					Gotoxy((*it)->X(), (*it)->Y()); printf(" "); // Eliminar bala
+					delete(*it); it = P.erase(it); // Borrar el objeto de la lista
+					
+					A.push_back(new ASTEROIDE(rand()%74 + 3, 4)); // Crear un asteoride
+					Gotoxy((*itA)->X(), (*itA)->Y()); printf(" "); // Eliminar asteroide en su última posición
+					delete(*itA); itA = A.erase(itA); // Borrar de la lista
+					
+					puntaje+=5;
+				}
+			}
+		}
+		// Si el número de vidas es menor a 0, el juego ha terminado
+		if (N.V() < 0) {
+			gameOver = true;
+			system("cls");
+			Gotoxy(35, 10); printf("Fin del juego");
+		}
+		
 		N.Explotar();
 		N.Mover();
 		Sleep(30); // Detener la ejecución por 30 mlSegundos
