@@ -1,3 +1,4 @@
-# Space Shooter en consola con c++
+# Space Shooter
+# Application console in C++
 
 ![](Captura.PNG)
