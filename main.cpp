@@ -133,6 +133,7 @@ void NAVE::PintarSalud() {
 void NAVE::Explotar() {
 	if(salud == 0) { // Si llegamos a perder todas las barras de salud, explotar y quitar vida
 		Borrar(); // Borrar la nave
+		Beep(300,200);
 		Gotoxy(x,y); 	 printf("  **  "); // Efecto de explotar
 		Gotoxy(x,y + 1); printf(" **** ");
 		Gotoxy(x,y + 2); printf("  **  ");
