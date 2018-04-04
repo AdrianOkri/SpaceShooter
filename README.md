@@ -1,4 +1,4 @@
 # Space Shooter
-# Application console in C++
+# Console application in C++
 
 ![](Captura.PNG)
