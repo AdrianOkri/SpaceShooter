@@ -73,12 +73,12 @@ void CrearInstrucciones() {
 	
 	Imprimir(x, y, "==================");
 	Imprimir(x, y + 2, "==================");
-	Imprimir(x, y + 4, "Instrucciones");
-	Imprimir(x, y + 6, "ARRIBA ^");
-	Imprimir(x, y + 8, "IZQUIERDA <");
-	Imprimir(x, y + 10, "DERECHA >");
-	Imprimir(x, y + 12, "ABAJO >");
-	Imprimir(x, y + 14, "DISPARAR - a");	
+	Imprimir(x, y + 4,  "Instrucciones");
+	Imprimir(x, y + 6,  "ARRIBA    = ^");
+	Imprimir(x, y + 8,  "IZQUIERDA = <");
+	Imprimir(x, y + 10, "DERECHA   = >");
+	Imprimir(x, y + 12, "ABAJO     = v");
+	Imprimir(x, y + 14, "DISPARAR  = a");	
 	Imprimir(x, y + 16, "==================");
 	Imprimir(x, y + 18, "==================");
 }
